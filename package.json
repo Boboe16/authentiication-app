@@ -9,12 +9,15 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "bcrypt": "^5.1.1",
     "child-process": "^1.0.2",
+    "dotenv": "^16.4.7",
     "env": "^0.0.2",
     "mongodb": "^6.10.0",
     "next": "15.0.3",
-    "react": "19.0.0-rc-66855b96-20241106",
-    "react-dom": "19.0.0-rc-66855b96-20241106",
+    "next-auth": "^4.24.11",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "tls": "^0.0.1"
   },
   "devDependencies": {
