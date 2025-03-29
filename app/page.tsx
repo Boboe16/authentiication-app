@@ -1,51 +1,58 @@
-"use client"
-import { useState, useRef } from "react";
+"use client";
+import { signIn } from "next-auth/react";
+import { useRef } from "react";
+import Image from "next/image";
+import { useRouter } from "next/navigation"; 
 
 export default function SignIn() {
-  const emailRef = useRef<any>();
-  const passwordRef = useRef<any>();
-  const [storedMessage, setStoredMessage] = useState("");
-  const [showStoredMessage, setShowStoredMessage] = useState(false);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const router = useRouter(); // ✅ Get router instance for redirecting
 
-  const readData = async (event: React.FormEvent) => {
-    event.preventDefault();
-    console.log("this is working")
-    const response = await fetch(`/api/read-data?email=${emailRef.current.value}&password=${passwordRef.current.value}`, { method: "GET" })
-    const data = await response.json();
-    try {
-      const getStoreMessage = data.messageToStore
-      console.log("Output: ", data);
-      setStoredMessage(getStoreMessage);
-      setShowStoredMessage(true);  
-    } catch(error) {
-      console.log(error);
-      console.log("Failed to retrieve stored message: ", data);
-      setStoredMessage("The data doesn't have message stored");
-      setShowStoredMessage(true);  // Reset message display if error occurs.
+  async function signInManually(e: React.FormEvent) {
+    e.preventDefault(); // Prevent page refresh
+
+    if (!emailRef.current || !passwordRef.current) return;
+
+    const email = emailRef.current.value;
+    const password = passwordRef.current.value;
+
+    // 🔥 Sign in without redirecting automatically
+    const result = await signIn("credentials", {
+      username: email,
+      password,
+      redirect: false, // ✅ Prevent automatic redirect
+    });
+
+    if (result?.error) {
+      console.error("Login failed:", result.error);
+      alert("Invalid credentials. Please try again."); // 🔥 Show error to user
+    } else {
+      console.log("Login successful!", result);
+      router.push("/store"); // ✅ Redirect manually after success
     }
   };
 
   return (
-    <div>
-      <form onSubmit={readData} method="GET" className="flex flex-col bg-pink-400 p-6 rounded-md m-10 shadow-lg">
-        <div className="flex flex-col my-2">
-          <label htmlFor="email">Email:</label>
-          <input ref={emailRef} className="p-2 rounded-sm" type="email" id="email" name="email" required />
-        </div>
-        <div className="flex flex-col my-2">
-          <label htmlFor="password">Password:</label>
-          <input ref={passwordRef} className="p-2 rounded-sm" type="password" id="password" name="password" required />
-        </div>
-        <div className="flex flex-row place-content-between">
-          <a className="px-3 py-2 underline" href="/sign-up">Sign up</a>
-          <button type="submit" className="self-end bg-green-400 px-3 py-2 rounded-lg w-fit">Login</button>
-        </div>
-      </form>
-      {showStoredMessage && 
-        <div>
-          <p>{storedMessage}</p>
-        </div>
-      }
-    </div>
+    <form onSubmit={signInManually} className="flex flex-col rounded-xl bg-pink-400 my-52 mx-7 mr-96 px-10 py-5">
+      <h1 className="text-center font-bold text-3xl">Authentication Form</h1>
+
+      <label className="mt-5">Email:</label>
+      <input ref={emailRef} type="email" name="email" required />
+
+      <label className="mt-5">Password:</label>
+      <input ref={passwordRef} type="password" name="password" required />
+
+      <a onClick={() => router.push("/forgot-password")} className="self-end mt-5 underline cursor-pointer">Forgot password</a>
+
+      <button className="rounded-2xl bg-green-500 self-center px-16 py-3 text-lg mt-5" type="submit">
+        Login
+      </button>
+      <p className=" text-center mt-5">Login or create account with:</p>
+      <div onClick={() => signIn("google", {callbackUrl: "/loading"})} className="flex flex-row cursor-pointer self-center bg-white rounded-2xl w-fit gap-3 justify-center my-5 px-10 py-3 text-lg mt-5">
+        <Image src="/google.png" alt="google.png" width={35} height={35}/>
+        <h3 className="text-black text-lg mt-[5px]">Google</h3>
+      </div>
+    </form>
   );
 }
